@@ -116,7 +116,7 @@ def move():
     #         if y < yme and x == xme:
     #             return "T"
 
-    return "T"
+    return "F"
 
 
 if __name__ == "__main__":
