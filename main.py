@@ -35,18 +35,50 @@ def move():
 
     href = b["_links"]["self"]["href"]
     me = b["arena"]["state"][href]
-
     direction = me["direction"]
 
-    # for url, obj in b["arena"]["state"].items():
-    #     if url == href:
-    #         continue
-        
-    # if me["x"] == 0 or me["y"] == 0:
-    #     return "F"
+    xme = me["x"]
+    yme = me["y"]
+    dirme = me["direction"]
+    dimx = b["arena"]["dims"][0]
+    dimy = b["arena"]["dims"][1]
+    del b["arena"]["state"][href]
 
-    if direction == "N":
+    if xme == 0 and dirme == "W":
         return "R"
+
+    if (xme == (dimx - 1) or xme == (dimx - 2)) and dirme == "E":
+        return "R"
+
+    if yme == 0 and dirme == "N":
+        return "L"
+
+    if (xme == (dimx - 1) or xme == (dimx - 2)) and dirme == "S":
+        return "L"
+
+    distances = []
+
+    for url, obj in b["arena"]["state"].items():
+        xen = obj["x"]
+        yen = obj["y"]
+
+        diff_x = abs(xen - xme)
+        diff_y = abs(yen - yme)
+
+        if diff_x <= 3 or diff_y <= 3:
+            distances.append((diff_x + diff_y, (xen, yen)))
+
+    if len(distances) == 0:
+        return "F"
+
+    # if dirme == "N":
+    #     for d, point in distances:
+    #         x = point[0]
+    #         y = point[1]
+    #
+    #         if y < yme and x == xme:
+    #             return "T"
+
     return "T"
 
 
