@@ -11,17 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
 import logging
-import random
 from flask import Flask, request
+from google.cloud import bigquery
+import time
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 moves = ['F', 'T', 'L', 'R']
+
+from concurrent.futures import ThreadPoolExecutor
+
+client = bigquery.Client()
+executor = ThreadPoolExecutor()
+
+
 
 
 @app.route("/", methods=['GET'])
@@ -58,6 +65,19 @@ def move():
 
     distances = []
 
+    ts = time.time()
+    executor.submit(client.insert_rows_json, 'allegro-hackathon12-2018.snowball.events', [
+        {
+            'x': stats['x'],
+            'y': stats['y'],
+            'direction': stats['direction'],
+            'wasHit': stats['wasHit'],
+            'score': stats['score'],
+            'player': player,
+            'timestamp': ts,
+        } for player, stats in b['arena']['state'].items()
+    ])
+
     for url, obj in b["arena"]["state"].items():
         xen = obj["x"]
         yen = obj["y"]
@@ -70,6 +90,23 @@ def move():
 
     if len(distances) == 0:
         return "F"
+
+    for d, point in distances:
+        x = point[0]
+        y = point[1]
+
+        if x == xme:
+            if y < yme and dirme == "N":
+                return "T"
+            if y > yme and dirme == "S":
+                return "T"
+
+        if y == yme:
+            if x < xme and dirme == "W":
+                return "T"
+
+            if x > xme and dirme == "E":
+                return "T"
 
     # if dirme == "N":
     #     for d, point in distances:
